@@ -10,32 +10,44 @@ import { config } from './config';
 
 const app: Application = express();
 
+// ✅ CRITICAL — Render terminates TLS at a proxy.
+//    Without this, Express sees requests as HTTP → secure cookies get rejected.
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow serving uploaded assets
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// CORS configuration
+// ✅ CORS — strict allow-list with credentials support
 const allowedOrigins = [
-  config.clientUrl,
-  config.canonicalSiteUrl,
+  config.clientUrl,                                    // env: production → profile.focusengineeringapp.com
+  config.canonicalSiteUrl,                             // env: production → profile.focusengineeringapp.com
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'https://portfolio.focusengineeringapp.com',
-];
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps, curl, postman)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive in development, can restrict in production
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+
+      // In development, be permissive. In production, deny.
+      if (!config.isProduction) {
+        return callback(null, true);
+      }
+
+      // Production: reject unlisted origins
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -57,10 +69,14 @@ if (config.nodeEnv !== 'test') {
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check endpoint
+// ✅ Health check — used by Render's Health Check Path
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'healthy',
+    environment: config.nodeEnv,          // ← visible proof that env vars loaded
+    isProduction: config.isProduction,
+    cookieSecure: config.cookieSecure,
+    cookieSameSite: config.cookieSameSite,
     timestamp: new Date().toISOString(),
     service: 'focus-portfolio-backend',
     version: '1.0.0',
@@ -70,6 +86,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'healthy',
+    environment: config.nodeEnv,
     timestamp: new Date().toISOString(),
     service: 'focus-portfolio-backend',
     version: '1.0.0',
