@@ -1,42 +1,14 @@
 import axios from 'axios';
 import { IPortfolio, IAdminUser, IDashboardStats, IPagination } from '../types';
 
-// ✅ Environment-aware backend URL
-// - Localhost / 127.0.0.1 / LAN IPs → '/api/v1' (dev proxy handles it)
-// - Any real HTTPS deployment → https://profile.focusengineeringapp.com/api/v1
-const PRODUCTION_API_BASE_URL = 'https://profile-chcx.onrender.com/api/v1';
-const LOCAL_API_BASE_URL = '/api/v1';
-
-const getApiBaseUrl = (): string => {
-  if (typeof window === 'undefined') return PRODUCTION_API_BASE_URL;
-
-  const { protocol, hostname } = window.location;
-
-  const isLocal =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '0.0.0.0' ||
-    hostname.endsWith('.local') ||
-    /^192\.168\.\d+\.\d+$/.test(hostname) ||
-    /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
-    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hostname);
-
-  // Local dev → relative path (Vite/Webpack proxy handles it)
-  if (isLocal || protocol === 'http:') {
-    return LOCAL_API_BASE_URL;
-  }
-
-  // Production → absolute API URL on your custom domain
-  return PRODUCTION_API_BASE_URL;
-};
-
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
-  withCredentials: true, // required for cookie-based JWT auth across subdomains
+  baseURL: '/api/v1',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
 
 // Intercept responses to handle 401 unauthorized
 api.interceptors.response.use(

@@ -16,8 +16,8 @@ export const config = {
     : process.env.NODE_ENV === 'production',
 
   // ✅ NEW — sameSite mode ('none' required for cross-origin cookies in prod)
-  cookieSameSite: (process.env.COOKIE_SAME_SITE as 'lax' | 'strict' | 'none' | undefined) ||
-    (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
+  cookieSameSite: 'lax',
+
 
   // ✅ NEW — optional cookie domain (undefined for cross-host setups like yours)
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
