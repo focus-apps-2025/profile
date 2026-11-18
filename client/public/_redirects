@@ -1,3 +1,0 @@
-/api/*  https://profile-chcx.onrender.com/api/:splat  200
-/uploads/*  https://profile-chcx.onrender.com/uploads/:splat  200
-/*  /index.html  200
