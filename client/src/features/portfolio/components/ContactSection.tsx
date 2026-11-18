@@ -2,6 +2,8 @@ import React from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 interface ContactSectionProps {
+  /** Portfolio slug — used for tracking / inquiry API calls, optional here */
+  portfolioSlug?: string;
   fullName: string;
   email: string;
   phone?: string;
@@ -17,6 +19,7 @@ const cleanPhone = (value: string) => value.replace(/[^\d+]/g, '');
 const cleanWhatsApp = (value: string) => value.replace(/\D/g, '');
 
 export const ContactSection: React.FC<ContactSectionProps> = ({
+  portfolioSlug, // accepted for API/tracking use — not needed for the links below
   fullName,
   email,
   phone,
@@ -26,21 +29,21 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 }) => {
   // Reusable link styles
   const linkBase = `text-sm font-semibold hover:underline transition-colors break-all ${darkVariant
-      ? 'text-white hover:text-corporate-lightBlue'
-      : 'text-corporate-navy hover:text-corporate-blue'
+    ? 'text-white hover:text-corporate-lightBlue'
+    : 'text-corporate-navy hover:text-corporate-blue'
     }`;
 
   const iconBoxBase = `w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${darkVariant
-      ? 'bg-slate-800 text-corporate-lightBlue'
-      : 'bg-corporate-secBg text-corporate-navy'
+    ? 'bg-slate-800 text-corporate-lightBlue'
+    : 'bg-corporate-secBg text-corporate-navy'
     }`;
 
   return (
     <div
       id="contact"
       className={`rounded-2xl p-6 sm:p-10 border transition-all ${darkVariant
-          ? 'bg-corporate-deep text-white border-corporate-navy shadow-elevated'
-          : 'bg-white text-corporate-text border-corporate-border shadow-subtle'
+        ? 'bg-corporate-deep text-white border-corporate-navy shadow-elevated'
+        : 'bg-white text-corporate-text border-corporate-border shadow-subtle'
         }`}
     >
       {/* Single column, centered, max-width for readability on large screens */}
@@ -114,8 +117,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             >
               <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${darkVariant
-                    ? 'bg-slate-800 text-emerald-400'
-                    : 'bg-emerald-50 text-emerald-600'
+                  ? 'bg-slate-800 text-emerald-400'
+                  : 'bg-emerald-50 text-emerald-600'
                   }`}
               >
                 <svg
