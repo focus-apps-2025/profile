@@ -1,10 +1,16 @@
 import bcrypt from 'bcryptjs';
-import { IPortfolio, IAdminUser, IInquiry, PortfolioStatus } from '../types';
-import { Portfolio, IPortfolioDocument } from '../models/Portfolio';
+import { IPortfolio, IAdminUser, IInquiry } from '../types';
+import { Portfolio } from '../models/Portfolio';
 import { Admin } from '../models/Admin';
 import { Inquiry } from '../models/Inquiry';
 import { getDBConnectionStatus } from '../config/db';
 import { config } from '../config';
+
+// ✅ Local memory types — these DO have `_id:string` because they're plain JS objects,
+//    not Mongoose documents. This is the *only* place `_id` needs to be declared.
+type MemoryPortfolio = IPortfolio & { _id: string };
+type MemoryAdmin = IAdminUser & { _id: string; passwordHash: string };
+type MemoryInquiry = IInquiry & { _id: string };
 
 // -------------------------------------------------------------
 // Seed Helpers
@@ -40,7 +46,7 @@ const seededNow = new Date();
 // -------------------------------------------------------------
 // In-Memory Seeded Fallback Store
 // -------------------------------------------------------------
-const memoryPortfolios: IPortfolio[] = [
+const memoryPortfolios: MemoryPortfolio[] = [
   // ===========================================================
   // KABIR BAWEJA
   // ===========================================================
@@ -166,7 +172,7 @@ const memoryPortfolios: IPortfolio[] = [
         responsibilities: [
           'Directed the end-to-end operational setup for a new Chartered Accountancy practice, transitioning all client financial data from manual records into a highly secure, structured digital framework.',
           'Designed custom automated Excel dashboards for SME clients, including Accounts Receivable (Ageing) trackers and Inventory TAT dashboards.',
-          "Built an automated GST Input Tax Credit (ITC) reconciliation tool using advanced VLOOKUPs and conditional formatting.",
+          'Built an automated GST Input Tax Credit (ITC) reconciliation tool using advanced VLOOKUPs and conditional formatting.',
           "Managed digital marketing campaigns to acquire new ROC and GST clients; stabilized backend processes leading to the firm's strategic merger.",
         ],
       },
@@ -174,7 +180,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Deputy Manager',
         company: 'VFS Global',
         employmentType: 'Full-time',
-        // location: 'Mumbai, Maharashtra, India · Hybrid',
         startDate: '2023-02',
         endDate: '2024-06',
         isCurrent: false,
@@ -193,7 +198,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Management Information System Executive',
         company: 'Infinity Cars Pvt Ltd',
         employmentType: 'Full-time',
-        //location: 'Navi Mumbai, Maharashtra, India · On-site',
         startDate: '2021-11',
         endDate: '2023-02',
         isCurrent: false,
@@ -211,7 +215,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Management Information System Executive',
         company: 'Tikona Infinet Ltd. - India',
         employmentType: 'Full-time',
-        // location: 'Mumbai, Maharashtra, India · On-site',
         startDate: '2018-11',
         endDate: '2020-12',
         isCurrent: false,
@@ -295,7 +298,6 @@ const memoryPortfolios: IPortfolio[] = [
       'Specializes in applying root-cause analysis (5 Whys, Fishbone) and structured 30-60-90 day transformation frameworks to drive measurable performance improvements.',
     profilePhoto: PHOTOS.kiran,
     coverImage: PLACEHOLDER_COVER,
-    // ⚠️ TODO: email/phone not in Excel — confirm with Kiran
     email: 'kiran@focusengineering.in',
     phone: 'TODO',
     location: 'Pune District, Maharashtra, India',
@@ -325,7 +327,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Business Transformation Consultant',
         company: 'Focus Group (Focus Engineering)',
         employmentType: 'Full-time',
-        //  location: 'Pune District, Maharashtra, India · Hybrid',
         startDate: '2025-02',
         isCurrent: true,
         description:
@@ -342,7 +343,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Independent Consultant',
         company: 'Self-Employed',
         employmentType: 'Freelance',
-        // location: 'Pune District, Maharashtra, India · On-site',
         startDate: '2024-07',
         endDate: '2025-01',
         isCurrent: false,
@@ -357,7 +357,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Management Information System Analyst',
         company: 'BMW Bavaria Motors',
         employmentType: 'Full-time',
-        // location: 'Pune District, Maharashtra, India · On-site',
         startDate: '2021-12',
         endDate: '2024-07',
         isCurrent: false,
@@ -374,7 +373,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Management Information System Analyst',
         company: 'Xpressbees (BusyBees Logistics Solutions Pvt. Ltd.)',
         employmentType: 'Full-time',
-        // location: 'Pune Division, Maharashtra, India',
         startDate: '2018-09',
         endDate: '2020-12',
         isCurrent: false,
@@ -389,7 +387,6 @@ const memoryPortfolios: IPortfolio[] = [
         jobTitle: 'Customer Service Representative',
         company: 'Tech Mahindra Business Process Services',
         employmentType: 'Full-time',
-        //location: 'Pune Division, Maharashtra, India',
         startDate: '2017-07',
         endDate: '2018-05',
         isCurrent: false,
@@ -443,7 +440,6 @@ const memoryPortfolios: IPortfolio[] = [
       },
     ],
     socialLinks: {
-      // ⚠️ TODO: Kiran's LinkedIn URL not provided — add when available
       website: 'https://focusengineeringapp.com',
     },
     createdAt: seededNow,
@@ -451,7 +447,8 @@ const memoryPortfolios: IPortfolio[] = [
   },
 ];
 
-const memoryAdmins: Array<IAdminUser & { passwordHash: string }> = [
+// ✅ Use MemoryAdmin here (includes _id + passwordHash)
+const memoryAdmins: MemoryAdmin[] = [
   {
     _id: '66a123456789abcdef000000',
     name: config.initialAdmin.name,
@@ -461,7 +458,8 @@ const memoryAdmins: Array<IAdminUser & { passwordHash: string }> = [
   },
 ];
 
-const memoryInquiries: IInquiry[] = [];
+// ✅ Use MemoryInquiry here (includes _id)
+const memoryInquiries: MemoryInquiry[] = [];
 
 // -------------------------------------------------------------
 // Unified Data Services
@@ -479,7 +477,7 @@ export const dataStore = {
     limit?: number;
     sortBy?: string;
     sortOrder?: 1 | -1;
-  }): Promise<{ portfolios: IPortfolio[]; total: number }> {
+  }): Promise<{ portfolios: any[]; total: number }> {
     if (getDBConnectionStatus()) {
       const query: any = {};
       if (filter.search) {
@@ -581,13 +579,13 @@ export const dataStore = {
       return (p as any).toJSON();
     }
 
-    const created: IPortfolio = {
+    const created: MemoryPortfolio = {
       ...data,
       _id: 'mem_' + Date.now().toString(16),
       slugHistory: [],
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    } as MemoryPortfolio;
     memoryPortfolios.push(created);
     return created;
   },
@@ -704,13 +702,20 @@ export const dataStore = {
   },
 
   // --- Inquiries Operations ---
-  async createInquiry(data: { portfolioId: string; portfolioSlug: string; senderName: string; senderEmail: string; subject?: string; message: string }) {
+  async createInquiry(data: {
+    portfolioId: string;
+    portfolioSlug: string;
+    senderName: string;
+    senderEmail: string;
+    subject?: string;
+    message: string;
+  }) {
     if (getDBConnectionStatus()) {
       const inq = new Inquiry(data);
       await inq.save();
       return inq;
     }
-    const inq = {
+    const inq: MemoryInquiry = {
       _id: 'inq_' + Date.now().toString(16),
       ...data,
       isRead: false,
