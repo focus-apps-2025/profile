@@ -4,7 +4,7 @@ import { IPortfolio, IAdminUser, IDashboardStats, IPagination } from '../types';
 // ✅ Environment-aware backend URL
 // - Localhost / 127.0.0.1 / LAN IPs → '/api/v1' (dev proxy handles it)
 // - Any real HTTPS deployment → https://profile.focusengineeringapp.com/api/v1
-const PRODUCTION_API_BASE_URL = 'https://profile.focusengineeringapp.com/api/v1';
+const PRODUCTION_API_BASE_URL = 'https://profile-chcx.onrender.com/api/v1';
 const LOCAL_API_BASE_URL = '/api/v1';
 
 const getApiBaseUrl = (): string => {
