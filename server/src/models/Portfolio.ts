@@ -1,9 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IPortfolio, PortfolioStatus, PortfolioTemplate } from '../types';
+import mongoose, { Schema, HydratedDocument } from 'mongoose';
+import { IPortfolio } from '../types';
 
-export interface IPortfolioDocument extends IPortfolio, Document {
-  toPublicJSON(): Partial<IPortfolio>;
-}
+// ✅ Use HydratedDocument instead of extending Document
+export type IPortfolioDocument = HydratedDocument<IPortfolio> & {
+  toPublicJSON(): any;
+};
 
 const SkillSchema = new Schema(
   {
@@ -108,101 +109,27 @@ const SocialLinksSchema = new Schema(
   { _id: false }
 );
 
-const PortfolioSchema = new Schema<IPortfolioDocument>(
+const PortfolioSchema = new Schema<IPortfolio>(
   {
-    fullName: {
-      type: String,
-      required: [true, 'Full name is required'],
-      trim: true,
-      index: true,
-    },
-    slug: {
-      type: String,
-      required: [true, 'Slug is required'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      index: true,
-    },
-    slugHistory: [{
-      type: String,
-      lowercase: true,
-      trim: true,
-    }],
-    professionalTitle: {
-      type: String,
-      required: [true, 'Professional title is required'],
-      trim: true,
-    },
-    shortIntro: {
-      type: String,
-      required: [true, 'Short introduction is required'],
-      trim: true,
-    },
-    bio: {
-      type: String,
-      trim: true,
-    },
-    profilePhoto: {
-      type: String,
-      trim: true,
-    },
-    coverImage: {
-      type: String,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      trim: true,
-    },
-    phone: {
-      type: String,
-      trim: true,
-    },
-    whatsapp: {                 // ← NEW
-      type: String,
-      trim: true,
-    },
-    location: {
-      type: String,
-      trim: true,
-    },
-    professionalRole: {
-      type: String,
-      required: [true, 'Professional role is required'],
-      trim: true,
-      index: true,
-    },
-    status: {
-      type: String,
-      enum: ['draft', 'published', 'disabled'],
-      default: 'draft',
-      index: true,
-    },
-    selectedTemplate: {
-      type: String,
-      enum: ['classic-corporate', 'modern-professional'],
-      default: 'classic-corporate',
-    },
-    isFeatured: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
-    showInDirectory: {
-      type: Boolean,
-      default: true,
-      index: true,
-    },
-    resumeUrl: {
-      type: String,
-      trim: true,
-    },
-    contactEnabled: {
-      type: Boolean,
-      default: true,
-    },
+    fullName: { type: String, required: [true, 'Full name is required'], trim: true, index: true },
+    slug: { type: String, required: [true, 'Slug is required'], unique: true, lowercase: true, trim: true, index: true },
+    slugHistory: [{ type: String, lowercase: true, trim: true }],
+    professionalTitle: { type: String, required: [true, 'Professional title is required'], trim: true },
+    shortIntro: { type: String, required: [true, 'Short introduction is required'], trim: true },
+    bio: { type: String, trim: true },
+    profilePhoto: { type: String, trim: true },
+    coverImage: { type: String, trim: true },
+    email: { type: String, required: [true, 'Email is required'], trim: true },
+    phone: { type: String, trim: true },
+    whatsapp: { type: String, trim: true },
+    location: { type: String, trim: true },
+    professionalRole: { type: String, required: [true, 'Professional role is required'], trim: true, index: true },
+    status: { type: String, enum: ['draft', 'published', 'disabled'], default: 'draft', index: true },
+    selectedTemplate: { type: String, enum: ['classic-corporate', 'modern-professional'], default: 'classic-corporate' },
+    isFeatured: { type: Boolean, default: false, index: true },
+    showInDirectory: { type: Boolean, default: true, index: true },
+    resumeUrl: { type: String, trim: true },
+    contactEnabled: { type: Boolean, default: true },
     company: CompanyInfoSchema,
     skills: [SkillSchema],
     experience: [ExperienceSchema],
@@ -212,31 +139,27 @@ const PortfolioSchema = new Schema<IPortfolioDocument>(
     services: [ServiceSchema],
     socialLinks: SocialLinksSchema,
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 // Slug history handling before saving
-PortfolioSchema.pre<IPortfolioDocument>('save', function (next) {
-  if (this.isModified('slug')) {
-    if (!this.slugHistory) {
-      this.slugHistory = [];
-    }
-    // Record past slugs
-    const pastSlug = this.get('slug', null, { getters: false });
-    if (pastSlug && pastSlug !== this.slug && !this.slugHistory.includes(pastSlug)) {
-      this.slugHistory.push(pastSlug);
+PortfolioSchema.pre('save', function (next) {
+  const doc = this as any;
+  if (doc.isModified('slug')) {
+    if (!doc.slugHistory) doc.slugHistory = [];
+    const pastSlug = doc.get('slug', null, { getters: false });
+    if (pastSlug && pastSlug !== doc.slug && !doc.slugHistory.includes(pastSlug)) {
+      doc.slugHistory.push(pastSlug);
     }
   }
   next();
 });
 
 // Sanitized public object
-PortfolioSchema.methods.toPublicJSON = function (): Partial<IPortfolio> {
-  const obj = this.toObject();
+PortfolioSchema.methods.toPublicJSON = function (): any {
+  const obj: any = this.toObject();
   return {
-    _id: obj._id,
+    _id: obj._id?.toString?.() ?? obj._id,
     fullName: obj.fullName,
     slug: obj.slug,
     professionalTitle: obj.professionalTitle,
@@ -246,7 +169,7 @@ PortfolioSchema.methods.toPublicJSON = function (): Partial<IPortfolio> {
     coverImage: obj.coverImage,
     email: obj.email,
     phone: obj.phone,
-    whatsapp: obj.whatsapp,     // ← NEW
+    whatsapp: obj.whatsapp,
     location: obj.location,
     professionalRole: obj.professionalRole,
     status: obj.status,
@@ -267,4 +190,21 @@ PortfolioSchema.methods.toPublicJSON = function (): Partial<IPortfolio> {
   };
 };
 
-export const Portfolio = mongoose.model<IPortfolioDocument>('Portfolio', PortfolioSchema);
+// ✅ Serialize _id → string everywhere, and drop __v
+PortfolioSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: (_doc, ret: any) => {
+    ret._id = ret._id?.toString?.() ?? ret._id;
+    ['skills', 'experience', 'education', 'projects', 'certifications', 'services'].forEach((k) => {
+      if (Array.isArray(ret[k])) {
+        ret[k].forEach((item: any) => {
+          if (item?._id) item._id = item._id.toString?.() ?? item._id;
+        });
+      }
+    });
+    return ret;
+  },
+});
+
+export const Portfolio = mongoose.model<IPortfolio>('Portfolio', PortfolioSchema);

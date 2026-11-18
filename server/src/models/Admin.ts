@@ -1,12 +1,13 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, HydratedDocument } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { IAdminUser } from '../types';
 
-export interface IAdminDocument extends IAdminUser, Document {
+// ✅ Use HydratedDocument instead of extending Document
+export type IAdminDocument = HydratedDocument<IAdminUser> & {
   comparePassword(candidatePassword: string): Promise<boolean>;
-}
+};
 
-const AdminSchema = new Schema<IAdminDocument>(
+const AdminSchema = new Schema<IAdminUser>(
   {
     email: {
       type: String,
@@ -31,23 +32,20 @@ const AdminSchema = new Schema<IAdminDocument>(
       enum: ['superadmin', 'admin'],
       default: 'admin',
     },
-    lastLogin: {
-      type: Date,
-    },
+    lastLogin: { type: Date },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 // Hash password before save
-AdminSchema.pre<IAdminDocument>('save', async function (next) {
-  if (!this.isModified('password') || !this.password) {
+AdminSchema.pre('save', async function (next) {
+  const doc = this as any;
+  if (!doc.isModified('password') || !doc.password) {
     return next();
   }
   try {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    doc.password = await bcrypt.hash(doc.password, salt);
     next();
   } catch (err: any) {
     next(err);
@@ -55,9 +53,22 @@ AdminSchema.pre<IAdminDocument>('save', async function (next) {
 });
 
 // Compare password helper
-AdminSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+AdminSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
   if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const Admin = mongoose.model<IAdminDocument>('Admin', AdminSchema);
+// ✅ Serialize _id → string, strip password
+AdminSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: (_doc, ret: any) => {
+    ret._id = ret._id?.toString?.() ?? ret._id;
+    delete ret.password;
+    return ret;
+  },
+});
+
+export const Admin = mongoose.model<IAdminUser>('Admin', AdminSchema);

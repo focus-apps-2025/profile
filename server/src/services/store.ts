@@ -543,7 +543,7 @@ export const dataStore = {
     return { portfolios, total };
   },
 
-  async findPortfolioBySlug(slug: string): Promise<{ portfolio: IPortfolio | null; redirectedFromHistory: boolean }> {
+  async findPortfolioBySlug(slug: string): Promise<{ portfolio: any; redirectedFromHistory: boolean }> {
     if (getDBConnectionStatus()) {
       let portfolio = await Portfolio.findOne({ slug });
       let redirectedFromHistory = false;
@@ -551,10 +551,12 @@ export const dataStore = {
         portfolio = await Portfolio.findOne({ slugHistory: slug });
         if (portfolio) redirectedFromHistory = true;
       }
-      return { portfolio: portfolio ? (portfolio.toPublicJSON ? portfolio.toPublicJSON() : portfolio.toObject()) : null, redirectedFromHistory };
+      return {
+        portfolio: portfolio ? (portfolio as any).toJSON() : null,
+        redirectedFromHistory,
+      };
     }
 
-    // In-Memory
     const direct = memoryPortfolios.find((p) => p.slug === slug);
     if (direct) return { portfolio: direct, redirectedFromHistory: false };
 
@@ -564,19 +566,19 @@ export const dataStore = {
     return { portfolio: null, redirectedFromHistory: false };
   },
 
-  async findPortfolioById(id: string): Promise<IPortfolio | null> {
+  async findPortfolioById(id: string): Promise<any> {
     if (getDBConnectionStatus()) {
       const p = await Portfolio.findById(id);
-      return p ? p.toObject() : null;
+      return p ? (p as any).toJSON() : null;
     }
     return memoryPortfolios.find((p) => p._id === id) || null;
   },
 
-  async createPortfolio(data: any): Promise<IPortfolio> {
+  async createPortfolio(data: any): Promise<any> {
     if (getDBConnectionStatus()) {
       const p = new Portfolio(data);
       await p.save();
-      return p.toObject();
+      return (p as any).toJSON();
     }
 
     const created: IPortfolio = {
@@ -590,7 +592,7 @@ export const dataStore = {
     return created;
   },
 
-  async updatePortfolio(id: string, data: any): Promise<IPortfolio | null> {
+  async updatePortfolio(id: string, data: any): Promise<any> {
     if (getDBConnectionStatus()) {
       const p = await Portfolio.findById(id);
       if (!p) return null;
@@ -600,7 +602,7 @@ export const dataStore = {
       }
       Object.assign(p, data);
       await p.save();
-      return p.toObject();
+      return (p as any).toJSON();
     }
 
     const idx = memoryPortfolios.findIndex((p) => p._id === id);

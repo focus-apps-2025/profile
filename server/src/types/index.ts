@@ -86,8 +86,9 @@ export interface ISocialLinks {
   email?: string;
 }
 
+// ⚠️ _id REMOVED — Mongoose adds it via HydratedDocument.
+//    All `_id` are serialized to string via the schema's toJSON transform.
 export interface IPortfolio {
-  _id?: string;
   fullName: string;
   slug: string;
   slugHistory?: string[];
@@ -119,8 +120,8 @@ export interface IPortfolio {
   updatedAt?: Date;
 }
 
+// ⚠️ _id REMOVED
 export interface IAdminUser {
-  _id?: string;
   email: string;
   name: string;
   password?: string;
@@ -130,8 +131,8 @@ export interface IAdminUser {
   updatedAt?: Date;
 }
 
+// ⚠️ _id REMOVED
 export interface IInquiry {
-  _id?: string;
   portfolioId: string;
   portfolioSlug: string;
   senderName: string;
@@ -140,4 +141,26 @@ export interface IInquiry {
   message: string;
   isRead: boolean;
   createdAt?: Date;
+}
+
+// ✅ API response types (with _id:string) — what the frontend actually receives
+export type IPortfolioResponse = IPortfolio & { _id: string };
+export type IAdminUserResponse = IAdminUser & { _id: string };
+export type IInquiryResponse = IInquiry & { _id: string };
+
+export interface IPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface IDashboardStats {
+  total: number;
+  published: number;
+  draft: number;
+  disabled: number;
+  totalInquiries: number;
+  recentCreated?: any[];
+  recentUpdated?: any[];
 }
