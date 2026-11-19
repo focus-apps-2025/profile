@@ -21,8 +21,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const currentUser = await authApi.getMe();
       setUser(currentUser);
-    } catch {
+    } catch (error) {
+      // ✅ Token required or expired - clear auth state
+      // This happens when the cookie isn't sent or is invalid
       setUser(null);
+      console.warn('Authentication check failed - token may be expired or invalid', error);
     } finally {
       setIsLoading(false);
     }
@@ -37,6 +40,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const data = await authApi.login(credentials);
       setUser(data.user);
+    } catch (error) {
+      console.error('Login failed', error);
+      // ✅ Login failed - could be invalid credentials or token issue
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

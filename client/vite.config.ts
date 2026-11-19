@@ -17,6 +17,8 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
+        // Credentials are handled via withCredentials on axios client
+        // and CORS configuration on the server
       },
       '/uploads': {
         target: 'http://localhost:5000',

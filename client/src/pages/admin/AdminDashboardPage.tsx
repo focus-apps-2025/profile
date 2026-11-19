@@ -86,10 +86,15 @@ export const AdminDashboardPage: React.FC = () => {
         }),
       ]);
       setStats(statsData);
-      setPortfolios(portfoliosData.portfolios);
-      setPagination(portfoliosData.pagination);
+      setPortfolios(portfoliosData.portfolios || []);
+      setPagination(portfoliosData.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 });
     } catch (e) {
       console.error('Failed to load dashboard data', e);
+      // ✅ If not authenticated, redirect to login
+      if (!user) {
+        logout();
+        navigate('/admin/login', { replace: true });
+      }
     } finally {
       setLoading(false);
     }
@@ -97,7 +102,12 @@ export const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [pagination.page, statusFilter]);
+  }, [pagination.page, statusFilter, user]);
+
+  // ✅ Redirect unauthenticated users away from the dashboard
+  if (!user && !isLoading) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
