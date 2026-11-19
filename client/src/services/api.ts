@@ -33,6 +33,9 @@ export const authApi = {
   },
   getMe: async (): Promise<IAdminUser> => {
     const res = await api.get('/auth/me');
+    if (!res.data?.data?.user) {
+      throw new Error('Authentication check failed - token may be expired or invalid');
+    }
     return res.data.data.user;
   },
 };
