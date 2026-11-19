@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   Users,
   CheckCircle,
@@ -105,7 +105,7 @@ export const AdminDashboardPage: React.FC = () => {
   }, [pagination.page, statusFilter, user]);
 
   // ✅ Redirect unauthenticated users away from the dashboard
-  if (!user && !isLoading) {
+  if (!user && !loading) {
     return <Navigate to="/admin/login" replace />;
   }
 
