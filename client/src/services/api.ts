@@ -1,8 +1,13 @@
+
 import axios from 'axios';
 import { IPortfolio, IAdminUser, IDashboardStats, IPagination } from '../types';
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '/api/v1'
+  : 'https://profile-chcx.onrender.com/api/v1';
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

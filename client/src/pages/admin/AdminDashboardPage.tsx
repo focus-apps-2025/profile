@@ -422,10 +422,10 @@ export const AdminDashboardPage: React.FC = () => {
                             onClick={() => handleTogglePublish(item._id)}
                             disabled={actionLoading === item._id}
                             className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all ${item.status === 'published'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : item.status === 'disabled'
-                                  ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                              : item.status === 'disabled'
+                                ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                               }`}
                             title="Click to toggle publish/draft"
                           >
